@@ -320,19 +320,19 @@ namespace CSharpDocs2Markdown
         private static string SimplifyDocumentationId(string documentationId)
         {
             string value = documentationId;
-            int colonIndex = value.IndexOf(':');
+            int colonIndex = value.IndexOf(':', StringComparison.Ordinal);
             if (colonIndex >= 0 && colonIndex < value.Length - 1)
             {
                 value = value[(colonIndex + 1)..];
             }
 
-            int parameterIndex = value.IndexOf('(');
+            int parameterIndex = value.IndexOf('(', StringComparison.Ordinal);
             if (parameterIndex >= 0)
             {
                 value = value[..parameterIndex];
             }
 
-            int genericArityIndex = value.IndexOf('`');
+            int genericArityIndex = value.IndexOf('`', StringComparison.Ordinal);
             if (genericArityIndex >= 0)
             {
                 value = value[..genericArityIndex];
