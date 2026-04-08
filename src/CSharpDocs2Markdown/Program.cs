@@ -65,7 +65,17 @@ namespace CSharpDocs2Markdown
             {
                 return await XmlDocChecker.RunAsync(projectPath, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
+            {
+                await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                return 1;
+            }
+            catch (IOException ex)
+            {
+                await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                return 1;
+            }
+            catch (InvalidOperationException ex)
             {
                 await Console.Error.WriteLineAsync(ex.ToString()).ConfigureAwait(false);
                 return 1;
@@ -82,7 +92,22 @@ namespace CSharpDocs2Markdown
                 await Console.Out.WriteLineAsync(json).ConfigureAwait(false);
                 return 0;
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
+            {
+                await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                return 1;
+            }
+            catch (IOException ex)
+            {
+                await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                return 1;
+            }
+            catch (InvalidOperationException ex)
+            {
+                await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                return 1;
+            }
+            catch (JsonException ex)
             {
                 await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
                 return 1;
@@ -97,7 +122,17 @@ namespace CSharpDocs2Markdown
                 await Console.Out.WriteLineAsync($"Generated API docs in {Path.GetFullPath(outputDirectory)}").ConfigureAwait(false);
                 return 0;
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
+            {
+                await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                return 1;
+            }
+            catch (IOException ex)
+            {
+                await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                return 1;
+            }
+            catch (InvalidOperationException ex)
             {
                 await Console.Error.WriteLineAsync(ex.ToString()).ConfigureAwait(false);
                 return 1;
