@@ -15,7 +15,7 @@ namespace CSharpDocs2Markdown
         private readonly IReadOnlyDictionary<string, DocumentationEntry> entries;
 
         /// <summary>
-        /// Initializes a new documentation store instance.
+        /// Initializes a new instance of the <see cref="XmlDocumentationStore"/> class.
         /// </summary>
         /// <param name="entries">The documentation entries indexed by documentation identifier.</param>
         private XmlDocumentationStore(IReadOnlyDictionary<string, DocumentationEntry> entries)
