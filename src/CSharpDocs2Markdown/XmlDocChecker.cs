@@ -31,9 +31,9 @@ namespace CSharpDocs2Markdown
                 CollectIssues(tree, issues);
             }
 
-            IOrderedEnumerable<IGrouping<string, Issue>> grouped = issues
+            IGrouping<string, Issue>[] grouped = [.. issues
                 .GroupBy(static i => i.FilePath, StringComparer.Ordinal)
-                .OrderBy(static g => g.Key, StringComparer.Ordinal);
+                .OrderBy(static g => g.Key, StringComparer.Ordinal)];
 
             string projectRoot = Path.GetDirectoryName(Path.GetFullPath(projectPath)) ?? string.Empty;
             foreach (IGrouping<string, Issue>? group in grouped)
@@ -46,7 +46,7 @@ namespace CSharpDocs2Markdown
             }
 
             Console.WriteLine();
-            Console.WriteLine($"Total: {issues.Count} issue(s) across {grouped.Count()} file(s)");
+            Console.WriteLine($"Total: {issues.Count} issue(s) across {grouped.Length} file(s)");
             return issues.Count == 0 ? 0 : 1;
         }
 
@@ -206,15 +206,9 @@ namespace CSharpDocs2Markdown
             {
                 return path;
             }
-            try
-            {
-                string rel = Path.GetRelativePath(root, path);
-                return rel.StartsWith("..", StringComparison.Ordinal) ? path : rel;
-            }
-            catch
-            {
-                return path;
-            }
+
+            string rel = Path.GetRelativePath(root, path);
+            return rel.StartsWith("..", StringComparison.Ordinal) ? path : rel;
         }
 
         private static string FormatIssue(string relativePath, Issue issue)
