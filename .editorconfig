@@ -33,3 +33,27 @@ tab_width = 4
 dotnet_separate_import_directive_groups = true
 dotnet_sort_system_directives_first = true
 dotnet_analyzer_diagnostic.category-Style.severity = warning
+
+# StyleCop: start docs-first. Keep ordering/layout churn out until the repo is stable under doc rules.
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = warning
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
+
+dotnet_analyzer_diagnostic.SA1600.severity = warning
+dotnet_analyzer_diagnostic.SA1601.severity = warning
+dotnet_analyzer_diagnostic.SA1602.severity = warning
+dotnet_analyzer_diagnostic.SA1604.severity = warning
+dotnet_analyzer_diagnostic.SA1605.severity = warning
+dotnet_analyzer_diagnostic.SA1606.severity = warning
+dotnet_analyzer_diagnostic.SA1611.severity = warning
+dotnet_analyzer_diagnostic.SA1615.severity = warning
+dotnet_analyzer_diagnostic.SA1618.severity = warning
+
+dotnet_diagnostic.SA1101.severity = none
+dotnet_analyzer_diagnostic.SA1623.severity = none
+dotnet_analyzer_diagnostic.SA1629.severity = none
+dotnet_analyzer_diagnostic.SA1633.severity = none
+dotnet_analyzer_diagnostic.SA1636.severity = none
