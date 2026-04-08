@@ -14,7 +14,7 @@ namespace CSharpDocs2Markdown
             }
 
             string projectDirectory = Path.GetDirectoryName(fullProjectPath)!;
-            string msbuildOutput = await RunMsbuildAsync(fullProjectPath, projectDirectory, cancellationToken);
+            string msbuildOutput = await RunMsbuildAsync(fullProjectPath, projectDirectory, cancellationToken).ConfigureAwait(false);
             using JsonDocument document = JsonDocument.Parse(msbuildOutput);
             JsonElement root = document.RootElement;
 
@@ -82,9 +82,9 @@ namespace CSharpDocs2Markdown
 
             _ = process.Start();
 
-            string stdout = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            string stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
-            await process.WaitForExitAsync(cancellationToken);
+            string stdout = await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+            string stderr = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
             return process.ExitCode != 0
                 ? throw new InvalidOperationException($"dotnet msbuild failed for {projectPath}.\n{stderr}".Trim())

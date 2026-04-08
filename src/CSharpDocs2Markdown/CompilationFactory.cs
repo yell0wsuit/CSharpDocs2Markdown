@@ -16,7 +16,7 @@ namespace CSharpDocs2Markdown
             foreach (string compileFile in inspection.CompileFiles)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                string sourceText = await File.ReadAllTextAsync(compileFile, cancellationToken);
+                string sourceText = await File.ReadAllTextAsync(compileFile, cancellationToken).ConfigureAwait(false);
                 syntaxTrees.Add(CSharpSyntaxTree.ParseText(sourceText, parseOptions, compileFile));
             }
 

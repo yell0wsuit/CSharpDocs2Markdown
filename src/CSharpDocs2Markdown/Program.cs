@@ -14,9 +14,9 @@ namespace CSharpDocs2Markdown
 
             return args[0] switch
             {
-                "inspect-project" when args.Length >= 2 => await InspectProjectAsync(args[1]),
-                "generate" when args.Length >= 3 => await GenerateAsync(args[1], args[2]),
-                "check-xml-docs" when args.Length >= 2 => await CheckXmlDocsAsync(args[1]),
+                "inspect-project" when args.Length >= 2 => await InspectProjectAsync(args[1]).ConfigureAwait(false),
+                "generate" when args.Length >= 3 => await GenerateAsync(args[1], args[2]).ConfigureAwait(false),
+                "check-xml-docs" when args.Length >= 2 => await CheckXmlDocsAsync(args[1]).ConfigureAwait(false),
                 _ => ExitWithUsageError(),
             };
         }
@@ -25,7 +25,7 @@ namespace CSharpDocs2Markdown
         {
             try
             {
-                return await XmlDocChecker.RunAsync(projectPath, CancellationToken.None);
+                return await XmlDocChecker.RunAsync(projectPath, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -38,7 +38,7 @@ namespace CSharpDocs2Markdown
         {
             try
             {
-                ProjectInspectionResult inspection = await ProjectLoader.LoadAsync(projectPath, CancellationToken.None);
+                ProjectInspectionResult inspection = await ProjectLoader.LoadAsync(projectPath, CancellationToken.None).ConfigureAwait(false);
                 string json = JsonSerializer.Serialize(
                     inspection,
                     new JsonSerializerOptions
@@ -61,7 +61,7 @@ namespace CSharpDocs2Markdown
         {
             try
             {
-                await ApiDocsGenerator.GenerateAsync(projectPath, outputDirectory, CancellationToken.None);
+                await ApiDocsGenerator.GenerateAsync(projectPath, outputDirectory, CancellationToken.None).ConfigureAwait(false);
                 Console.WriteLine($"Generated API docs in {Path.GetFullPath(outputDirectory)}");
                 return 0;
             }

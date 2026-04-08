@@ -30,16 +30,16 @@ namespace CSharpDocs2Markdown
             INamedTypeSymbol[] allTypes = [.. EnumerateAllTypes(compilation.Assembly.GlobalNamespace)];
             IReadOnlyDictionary<string, LinkTarget> linkTargets = BuildLinkTargets(allTypes, compilation.Assembly, outputDirectory);
 
-            await WriteRootIndexAsync(outputDirectory, topLevelNamespaces, cancellationToken);
+            await WriteRootIndexAsync(outputDirectory, topLevelNamespaces, cancellationToken).ConfigureAwait(false);
 
             foreach (INamespaceSymbol namespaceSymbol in EnumerateNamespaces(topLevelNamespaces))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await WriteNamespacePageAsync(outputDirectory, namespaceSymbol, cancellationToken);
+                await WriteNamespacePageAsync(outputDirectory, namespaceSymbol, cancellationToken).ConfigureAwait(false);
 
                 foreach (INamedTypeSymbol? typeSymbol in namespaceSymbol.GetTypeMembers().OrderBy(static symbol => symbol.Name, StringComparer.Ordinal))
                 {
-                    await WriteTypePageAsync(outputDirectory, inspection, typeSymbol, allTypes, compilation.Assembly, xmlDocs, linkTargets, cancellationToken);
+                    await WriteTypePageAsync(outputDirectory, inspection, typeSymbol, allTypes, compilation.Assembly, xmlDocs, linkTargets, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -59,7 +59,7 @@ namespace CSharpDocs2Markdown
                 _ = builder.AppendLine($"- [{namespaceSymbol.ToDisplayString()}]({relativeLink})");
             }
 
-            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "index.md"), builder.ToString(), cancellationToken);
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "index.md"), builder.ToString(), cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task WriteNamespacePageAsync(string outputDirectory, INamespaceSymbol namespaceSymbol, CancellationToken cancellationToken)
@@ -101,7 +101,7 @@ namespace CSharpDocs2Markdown
                 }
             }
 
-            await File.WriteAllTextAsync(pagePath, builder.ToString(), cancellationToken);
+            await File.WriteAllTextAsync(pagePath, builder.ToString(), cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task WriteTypePageAsync(
@@ -165,7 +165,7 @@ namespace CSharpDocs2Markdown
             AppendMemberSection(builder, pagePath, linkTargets, "Methods", typeSymbol.GetMembers().OfType<IMethodSymbol>().Where(static method => !method.IsImplicitlyDeclared && method.MethodKind == MethodKind.Ordinary), xmlDocs);
             AppendMemberSection(builder, pagePath, linkTargets, "Events", typeSymbol.GetMembers().OfType<IEventSymbol>().Where(static @event => !@event.IsImplicitlyDeclared), xmlDocs);
 
-            await File.WriteAllTextAsync(pagePath, builder.ToString(), cancellationToken);
+            await File.WriteAllTextAsync(pagePath, builder.ToString(), cancellationToken).ConfigureAwait(false);
         }
 
         private static void AppendMemberSection<TSymbol>(
@@ -411,6 +411,16 @@ namespace CSharpDocs2Markdown
                     TypeKind.Interface => "interface",
                     TypeKind.Enum => "enum",
                     TypeKind.Delegate => "delegate",
+                    TypeKind.Unknown => throw new NotImplementedException(),
+                    TypeKind.Array => throw new NotImplementedException(),
+                    TypeKind.Dynamic => throw new NotImplementedException(),
+                    TypeKind.Error => throw new NotImplementedException(),
+                    TypeKind.Module => throw new NotImplementedException(),
+                    TypeKind.Pointer => throw new NotImplementedException(),
+                    TypeKind.TypeParameter => throw new NotImplementedException(),
+                    TypeKind.Submission => throw new NotImplementedException(),
+                    TypeKind.FunctionPointer => throw new NotImplementedException(),
+                    TypeKind.Extension => throw new NotImplementedException(),
                     _ => "type",
                 };
         }
@@ -639,6 +649,7 @@ namespace CSharpDocs2Markdown
                 Accessibility.Protected => "protected",
                 Accessibility.ProtectedOrInternal => "protected internal",
                 Accessibility.ProtectedAndInternal => "private protected",
+                Accessibility.NotApplicable => throw new NotImplementedException(),
                 _ => string.Empty,
             };
         }
@@ -661,6 +672,8 @@ namespace CSharpDocs2Markdown
                 RefKind.Ref => "ref",
                 RefKind.Out => "out",
                 RefKind.In => "in",
+                RefKind.None => throw new NotImplementedException(),
+                RefKind.RefReadOnlyParameter => throw new NotImplementedException(),
                 _ => string.Empty,
             });
 

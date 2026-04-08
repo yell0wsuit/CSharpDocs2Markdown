@@ -10,7 +10,7 @@ namespace CSharpDocs2Markdown
     /// </summary>
     internal static class XmlDocChecker
     {
-        public readonly record struct Issue(
+        internal readonly record struct Issue(
             string FilePath,
             int Line,
             string MemberKind,
@@ -21,8 +21,8 @@ namespace CSharpDocs2Markdown
 
         public static async Task<int> RunAsync(string projectPath, CancellationToken cancellationToken)
         {
-            ProjectInspectionResult inspection = await ProjectLoader.LoadAsync(projectPath, cancellationToken);
-            CSharpCompilation compilation = await CompilationFactory.CreateAsync(inspection, cancellationToken);
+            ProjectInspectionResult inspection = await ProjectLoader.LoadAsync(projectPath, cancellationToken).ConfigureAwait(false);
+            CSharpCompilation compilation = await CompilationFactory.CreateAsync(inspection, cancellationToken).ConfigureAwait(false);
 
             List<Issue> issues = [];
             foreach (SyntaxTree tree in compilation.SyntaxTrees)
@@ -93,6 +93,8 @@ namespace CSharpDocs2Markdown
                         Inspect(tree, record, record.Identifier.Text, "record",
                             pl.Parameters,
                             isVoid: true, "void", sink);
+                        break;
+                    default:
                         break;
                 }
             }
