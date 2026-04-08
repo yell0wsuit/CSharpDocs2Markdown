@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -56,7 +57,7 @@ namespace CSharpDocs2Markdown
             foreach (INamespaceSymbol namespaceSymbol in namespaces)
             {
                 string relativeLink = ToMarkdownPath(GetNamespaceIndexPath(namespaceSymbol));
-                _ = builder.AppendLine($"- [{namespaceSymbol.ToDisplayString()}]({relativeLink})");
+                AppendInvariantLine(builder, $"- [{namespaceSymbol.ToDisplayString()}]({relativeLink})");
             }
 
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "index.md"), builder.ToString(), cancellationToken).ConfigureAwait(false);
@@ -74,7 +75,7 @@ namespace CSharpDocs2Markdown
 
             StringBuilder builder = new();
             AppendFrontMatter(builder, namespaceSymbol.ToDisplayString(), $"API namespace {namespaceSymbol.ToDisplayString()}.");
-            _ = builder.AppendLine($"# {namespaceSymbol.ToDisplayString()}");
+            AppendInvariantLine(builder, $"# {namespaceSymbol.ToDisplayString()}");
             _ = builder.AppendLine();
 
             if (childNamespaces.Length > 0)
@@ -84,7 +85,7 @@ namespace CSharpDocs2Markdown
                 foreach (INamespaceSymbol? childNamespace in childNamespaces)
                 {
                     string childPagePath = Path.Combine(outputDirectory, GetNamespaceIndexPath(childNamespace));
-                    _ = builder.AppendLine($"- [{childNamespace.ToDisplayString()}]({GetRelativeLink(pagePath, childPagePath)})");
+                    AppendInvariantLine(builder, $"- [{childNamespace.ToDisplayString()}]({GetRelativeLink(pagePath, childPagePath)})");
                 }
 
                 _ = builder.AppendLine();
@@ -97,7 +98,7 @@ namespace CSharpDocs2Markdown
                 foreach (INamedTypeSymbol? type in types)
                 {
                     string typePagePath = Path.Combine(outputDirectory, GetTypePagePath(type));
-                    _ = builder.AppendLine($"- [{type.Name}]({GetRelativeLink(pagePath, typePagePath)})");
+                    AppendInvariantLine(builder, $"- [{type.Name}]({GetRelativeLink(pagePath, typePagePath)})");
                 }
             }
 
@@ -124,13 +125,13 @@ namespace CSharpDocs2Markdown
             string summaryText = ResolveDocumentationText(typeDocs.Summary, pagePath, linkTargets, useLinks: true);
             string summaryForDescription = ResolveDocumentationText(typeDocs.Summary, pagePath, linkTargets, useLinks: false);
             AppendFrontMatter(builder, title, string.IsNullOrWhiteSpace(summaryForDescription) ? $"API type {typeSymbol.ToDisplayString()}." : summaryForDescription);
-            _ = builder.AppendLine($"# {title}");
+            AppendInvariantLine(builder, $"# {title}");
             _ = builder.AppendLine();
-            _ = builder.AppendLine($"Namespace: `{typeSymbol.ContainingNamespace.ToDisplayString()}`");
+            AppendInvariantLine(builder, $"Namespace: `{typeSymbol.ContainingNamespace.ToDisplayString()}`");
             _ = builder.AppendLine();
-            _ = builder.AppendLine($"Assembly: `{inspection.AssemblyName}.dll`");
+            AppendInvariantLine(builder, $"Assembly: `{inspection.AssemblyName}.dll`");
             _ = builder.AppendLine();
-            _ = builder.AppendLine($"Source: `{GetSourceFileLabel(typeSymbol)}`");
+            AppendInvariantLine(builder, $"Source: `{GetSourceFileLabel(typeSymbol)}`");
             _ = builder.AppendLine();
 
             if (!string.IsNullOrWhiteSpace(summaryText))
@@ -183,7 +184,7 @@ namespace CSharpDocs2Markdown
                 return;
             }
 
-            _ = builder.AppendLine($"## {heading}");
+            AppendInvariantLine(builder, $"## {heading}");
             _ = builder.AppendLine();
 
             IGrouping<string, TSymbol>[] groupedMembers = [.. orderedMembers
@@ -195,7 +196,7 @@ namespace CSharpDocs2Markdown
             {
                 if (useFileSubsections)
                 {
-                    _ = builder.AppendLine($"### {group.Key}");
+                    AppendInvariantLine(builder, $"### {group.Key}");
                     _ = builder.AppendLine();
                 }
 
@@ -229,7 +230,7 @@ namespace CSharpDocs2Markdown
                     string returnsText = ResolveDocumentationText(docs.Returns, pagePath, linkTargets, useLinks: true);
                     if (!string.IsNullOrWhiteSpace(returnsText))
                     {
-                        _ = builder.AppendLine($"Returns: {returnsText}");
+                        AppendInvariantLine(builder, $"Returns: {returnsText}");
                         _ = builder.AppendLine();
                     }
                 }
@@ -268,7 +269,7 @@ namespace CSharpDocs2Markdown
             foreach ((IParameterSymbol Parameter, string Value) in documentedParameters)
             {
                 string parameterText = ResolveDocumentationText(Value, pagePath, linkTargets, useLinks: true);
-                _ = builder.AppendLine($"- `{Parameter.Name}`: {parameterText}");
+                AppendInvariantLine(builder, $"- `{Parameter.Name}`: {parameterText}");
             }
 
             _ = builder.AppendLine();
@@ -746,11 +747,11 @@ namespace CSharpDocs2Markdown
                 return;
             }
 
-            _ = builder.AppendLine($"## {heading}");
+            AppendInvariantLine(builder, $"## {heading}");
             _ = builder.AppendLine();
             foreach (INamedTypeSymbol? type in orderedTypes)
             {
-                _ = builder.AppendLine($"- {RenderTypeReference(type, currentPagePath, outputDirectory, assemblySymbol)}");
+                AppendInvariantLine(builder, $"- {RenderTypeReference(type, currentPagePath, outputDirectory, assemblySymbol)}");
             }
             _ = builder.AppendLine();
         }
@@ -766,7 +767,7 @@ namespace CSharpDocs2Markdown
             return $"`{FormatTypeName(typeSymbol)}`";
         }
 
-        private static IReadOnlyDictionary<string, LinkTarget> BuildLinkTargets(IReadOnlyList<INamedTypeSymbol> allTypes, IAssemblySymbol assemblySymbol, string outputDirectory)
+        private static Dictionary<string, LinkTarget> BuildLinkTargets(IReadOnlyList<INamedTypeSymbol> allTypes, IAssemblySymbol assemblySymbol, string outputDirectory)
         {
             Dictionary<string, LinkTarget> targets = new(StringComparer.Ordinal);
 
@@ -877,6 +878,7 @@ namespace CSharpDocs2Markdown
                 : $"{relativePage}#{target.Anchor}";
         }
 
+        [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Markdown anchors are intentionally lowercase for stable, readable URLs.")]
         private static string? GetSymbolAnchor(ISymbol symbol)
         {
             string? documentationId = symbol.GetDocumentationCommentId();
@@ -907,10 +909,15 @@ namespace CSharpDocs2Markdown
         private static void AppendFrontMatter(StringBuilder builder, string title, string description)
         {
             _ = builder.AppendLine("---");
-            _ = builder.AppendLine($"title: {EscapeFrontMatter(title)}");
-            _ = builder.AppendLine($"description: {EscapeFrontMatter(description)}");
+            AppendInvariantLine(builder, $"title: {EscapeFrontMatter(title)}");
+            AppendInvariantLine(builder, $"description: {EscapeFrontMatter(description)}");
             _ = builder.AppendLine("---");
             _ = builder.AppendLine();
+        }
+
+        private static void AppendInvariantLine(StringBuilder builder, FormattableString line)
+        {
+            _ = builder.AppendLine(FormattableString.Invariant(line));
         }
 
         private static string EscapeFrontMatter(string value)
