@@ -4,15 +4,31 @@ using Microsoft.CodeAnalysis;
 
 namespace CSharpDocs2Markdown
 {
+    /// <summary>
+    /// Loads and resolves XML documentation entries for symbols.
+    /// </summary>
     internal sealed class XmlDocumentationStore
     {
+        /// <summary>
+        /// Cached documentation entries keyed by Roslyn documentation identifier.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, DocumentationEntry> entries;
 
+        /// <summary>
+        /// Initializes a new documentation store instance.
+        /// </summary>
+        /// <param name="entries">The documentation entries indexed by documentation identifier.</param>
         private XmlDocumentationStore(IReadOnlyDictionary<string, DocumentationEntry> entries)
         {
             this.entries = entries;
         }
 
+        /// <summary>
+        /// Loads XML documentation entries from the project output and optional reference assemblies.
+        /// </summary>
+        /// <param name="path">The project XML documentation file to load.</param>
+        /// <param name="referencePaths">The metadata references that may have sibling XML docs.</param>
+        /// <returns>A populated documentation store.</returns>
         public static XmlDocumentationStore Load(string path, IReadOnlyList<string>? referencePaths = null)
         {
             Dictionary<string, DocumentationEntry> parsedEntries = new(StringComparer.Ordinal);
@@ -26,6 +42,11 @@ namespace CSharpDocs2Markdown
             return new XmlDocumentationStore(parsedEntries);
         }
 
+        /// <summary>
+        /// Gets the best documentation entry for a symbol, including inherited interface and override docs.
+        /// </summary>
+        /// <param name="symbol">The symbol whose documentation should be resolved.</param>
+        /// <returns>The resolved documentation entry, or <see cref="DocumentationEntry.Empty"/> when none exists.</returns>
         public DocumentationEntry Get(ISymbol symbol)
         {
             DocumentationEntry entry = GetDirect(symbol);
@@ -62,6 +83,12 @@ namespace CSharpDocs2Markdown
             return DocumentationEntry.Empty;
         }
 
+        /// <summary>
+        /// Parses a single XML documentation file into the entry dictionary.
+        /// </summary>
+        /// <param name="path">The XML documentation file path.</param>
+        /// <param name="parsedEntries">The destination dictionary for parsed entries.</param>
+        /// <param name="overwriteExisting">A value indicating whether existing entries may be replaced.</param>
         private static void ParseDocumentationFile(string? path, Dictionary<string, DocumentationEntry> parsedEntries, bool overwriteExisting)
         {
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
@@ -99,6 +126,11 @@ namespace CSharpDocs2Markdown
             }
         }
 
+        /// <summary>
+        /// Gets the documentation entry directly attached to a symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol to resolve.</param>
+        /// <returns>The direct entry for the symbol, or an empty entry when none exists.</returns>
         private DocumentationEntry GetDirect(ISymbol symbol)
         {
             string? documentationId = symbol.GetDocumentationCommentId();
@@ -107,6 +139,11 @@ namespace CSharpDocs2Markdown
                 : DocumentationEntry.Empty;
         }
 
+        /// <summary>
+        /// Resolves inherited documentation for a method.
+        /// </summary>
+        /// <param name="method">The method whose inherited documentation should be found.</param>
+        /// <returns>The inherited documentation entry, or an empty entry when none exists.</returns>
         private DocumentationEntry ResolveInheritedMethodEntry(IMethodSymbol method)
         {
             if (method.OverriddenMethod is not null)
@@ -133,6 +170,11 @@ namespace CSharpDocs2Markdown
             return !implicitEntry.IsEmpty ? implicitEntry : DocumentationEntry.Empty;
         }
 
+        /// <summary>
+        /// Resolves inherited documentation for a property.
+        /// </summary>
+        /// <param name="property">The property whose inherited documentation should be found.</param>
+        /// <returns>The inherited documentation entry, or an empty entry when none exists.</returns>
         private DocumentationEntry ResolveInheritedPropertyEntry(IPropertySymbol property)
         {
             if (property.OverriddenProperty is not null)
@@ -159,6 +201,11 @@ namespace CSharpDocs2Markdown
             return !implicitEntry.IsEmpty ? implicitEntry : DocumentationEntry.Empty;
         }
 
+        /// <summary>
+        /// Resolves inherited documentation for an event.
+        /// </summary>
+        /// <param name="eventSymbol">The event whose inherited documentation should be found.</param>
+        /// <returns>The inherited documentation entry, or an empty entry when none exists.</returns>
         private DocumentationEntry ResolveInheritedEventEntry(IEventSymbol eventSymbol)
         {
             if (eventSymbol.OverriddenEvent is not null)
@@ -185,6 +232,13 @@ namespace CSharpDocs2Markdown
             return !implicitEntry.IsEmpty ? implicitEntry : DocumentationEntry.Empty;
         }
 
+        /// <summary>
+        /// Resolves documentation inherited through implicit interface implementation.
+        /// </summary>
+        /// <typeparam name="TSymbol">The interface member symbol type.</typeparam>
+        /// <param name="implementationSymbol">The concrete member implementation.</param>
+        /// <param name="getInterfaceMembers">A selector that returns candidate members for an interface.</param>
+        /// <returns>The inherited documentation entry, or an empty entry when none exists.</returns>
         private DocumentationEntry ResolveImplicitInterfaceEntry<TSymbol>(
             TSymbol implementationSymbol,
             Func<INamedTypeSymbol, IEnumerable<TSymbol>> getInterfaceMembers)
@@ -217,6 +271,11 @@ namespace CSharpDocs2Markdown
             return DocumentationEntry.Empty;
         }
 
+        /// <summary>
+        /// Finds XML documentation files that correspond to referenced assemblies.
+        /// </summary>
+        /// <param name="referencePaths">The metadata reference paths to inspect.</param>
+        /// <returns>The distinct XML documentation file paths that exist alongside the references.</returns>
         private static List<string> GetReferenceDocumentationPaths(IReadOnlyList<string>? referencePaths)
         {
             if (referencePaths is null || referencePaths.Count == 0)
@@ -250,6 +309,11 @@ namespace CSharpDocs2Markdown
             return results;
         }
 
+        /// <summary>
+        /// Reads and normalizes the rendered text content of an XML element.
+        /// </summary>
+        /// <param name="element">The XML element to render.</param>
+        /// <returns>The normalized element text.</returns>
         private static string ReadElementText(XElement? element)
         {
             if (element is null)
@@ -261,6 +325,11 @@ namespace CSharpDocs2Markdown
             return NormalizeWhitespace(rawText);
         }
 
+        /// <summary>
+        /// Renders a single XML documentation node to plain text with placeholders.
+        /// </summary>
+        /// <param name="node">The node to render.</param>
+        /// <returns>The rendered node text.</returns>
         private static string RenderNode(XNode node)
         {
             return node switch
@@ -271,6 +340,11 @@ namespace CSharpDocs2Markdown
             };
         }
 
+        /// <summary>
+        /// Renders a supported XML documentation element to text.
+        /// </summary>
+        /// <param name="element">The element to render.</param>
+        /// <returns>The rendered element text.</returns>
         private static string RenderElement(XElement element)
         {
             return element.Name.LocalName switch
@@ -289,6 +363,11 @@ namespace CSharpDocs2Markdown
             };
         }
 
+        /// <summary>
+        /// Renders a cref-based XML element to a placeholder link token.
+        /// </summary>
+        /// <param name="element">The cref element to render.</param>
+        /// <returns>The rendered placeholder text.</returns>
         private static string RenderCrefElement(XElement element)
         {
             string explicitText = NormalizeWhitespace(string.Concat(element.Nodes().Select(RenderNode)));
@@ -305,18 +384,33 @@ namespace CSharpDocs2Markdown
             return $"[[cref:{cref}|{label}]]";
         }
 
+        /// <summary>
+        /// Renders a parameter or type parameter reference element.
+        /// </summary>
+        /// <param name="element">The XML element to render.</param>
+        /// <returns>The rendered inline code text.</returns>
         private static string RenderNameElement(XElement element)
         {
             string? name = element.Attribute("name")?.Value;
             return string.IsNullOrWhiteSpace(name) ? string.Empty : $"`{name}`";
         }
 
+        /// <summary>
+        /// Renders a langword element as inline code.
+        /// </summary>
+        /// <param name="element">The XML element to render.</param>
+        /// <returns>The rendered inline code text.</returns>
         private static string RenderLangwordElement(XElement element)
         {
             string? word = element.Attribute("word")?.Value;
             return string.IsNullOrWhiteSpace(word) ? string.Empty : $"`{word}`";
         }
 
+        /// <summary>
+        /// Converts a documentation identifier into a short display label.
+        /// </summary>
+        /// <param name="documentationId">The Roslyn documentation identifier.</param>
+        /// <returns>A simplified member label suitable for Markdown output.</returns>
         private static string SimplifyDocumentationId(string documentationId)
         {
             string value = documentationId;
@@ -347,12 +441,25 @@ namespace CSharpDocs2Markdown
             return value.Replace('#', '.');
         }
 
+        /// <summary>
+        /// Collapses repeated whitespace into single spaces.
+        /// </summary>
+        /// <param name="value">The text to normalize.</param>
+        /// <returns>The normalized text.</returns>
         private static string NormalizeWhitespace(string value)
         {
             return string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         }
     }
 
+    /// <summary>
+    /// Stores rendered XML documentation fragments for a symbol.
+    /// </summary>
+    /// <param name="Summary">The rendered summary text.</param>
+    /// <param name="Remarks">The rendered remarks text.</param>
+    /// <param name="Returns">The rendered returns text.</param>
+    /// <param name="Parameters">The rendered parameter documentation keyed by parameter name.</param>
+    /// <param name="Exceptions">The rendered exception descriptions.</param>
     internal sealed record DocumentationEntry(
         string Summary,
         string Remarks,
@@ -360,6 +467,9 @@ namespace CSharpDocs2Markdown
         IReadOnlyDictionary<string, string> Parameters,
         IReadOnlyList<string> Exceptions)
     {
+        /// <summary>
+        /// Gets a value indicating whether the entry contains any documentation content.
+        /// </summary>
         public bool IsEmpty =>
             string.IsNullOrWhiteSpace(Summary)
             && string.IsNullOrWhiteSpace(Remarks)
@@ -367,6 +477,9 @@ namespace CSharpDocs2Markdown
             && Parameters.Count == 0
             && Exceptions.Count == 0;
 
+        /// <summary>
+        /// Gets a shared empty documentation entry.
+        /// </summary>
         public static DocumentationEntry Empty { get; } = new(string.Empty, string.Empty, string.Empty, new Dictionary<string, string>(StringComparer.Ordinal), []);
     }
 }

@@ -10,6 +10,16 @@ namespace CSharpDocs2Markdown
     /// </summary>
     internal static class XmlDocChecker
     {
+        /// <summary>
+        /// Represents a single incomplete XML documentation issue.
+        /// </summary>
+        /// <param name="FilePath">The source file that contains the issue.</param>
+        /// <param name="Line">The one-based line number of the documented member.</param>
+        /// <param name="MemberKind">The kind of member that has incomplete docs.</param>
+        /// <param name="MemberName">The display name of the member.</param>
+        /// <param name="MissingParams">The parameter names missing <c>&lt;param&gt;</c> tags.</param>
+        /// <param name="MissingReturns">A value indicating whether the member is missing a <c>&lt;returns&gt;</c> tag.</param>
+        /// <param name="ReturnType">The return type display text used in diagnostics.</param>
         internal readonly record struct Issue(
             string FilePath,
             int Line,
@@ -19,6 +29,14 @@ namespace CSharpDocs2Markdown
             bool MissingReturns,
             string ReturnType);
 
+        /// <summary>
+        /// Runs the XML documentation completeness checker for a project.
+        /// </summary>
+        /// <param name="projectPath">The path to the project to inspect.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>
+        /// <c>0</c> when no issues are found; otherwise <c>1</c>.
+        /// </returns>
         public static async Task<int> RunAsync(string projectPath, CancellationToken cancellationToken)
         {
             ProjectInspectionResult inspection = await ProjectLoader.LoadAsync(projectPath, cancellationToken).ConfigureAwait(false);
@@ -50,6 +68,11 @@ namespace CSharpDocs2Markdown
             return issues.Count == 0 ? 0 : 1;
         }
 
+        /// <summary>
+        /// Collects documentation issues for a syntax tree.
+        /// </summary>
+        /// <param name="tree">The syntax tree to inspect.</param>
+        /// <param name="sink">The destination list for discovered issues.</param>
         private static void CollectIssues(SyntaxTree tree, List<Issue> sink)
         {
             SyntaxNode root = tree.GetRoot();
@@ -100,6 +123,17 @@ namespace CSharpDocs2Markdown
             }
         }
 
+        /// <summary>
+        /// Inspects a single member declaration for missing XML documentation elements.
+        /// </summary>
+        /// <param name="tree">The syntax tree that contains the member.</param>
+        /// <param name="member">The member node to inspect.</param>
+        /// <param name="memberName">The display name used in diagnostics.</param>
+        /// <param name="memberKind">The member kind label used in diagnostics.</param>
+        /// <param name="parameters">The parameters that should be documented.</param>
+        /// <param name="isVoid">A value indicating whether the member should omit <c>&lt;returns&gt;</c>.</param>
+        /// <param name="returnType">The member return type display text.</param>
+        /// <param name="sink">The destination list for discovered issues.</param>
         private static void Inspect(
             SyntaxTree tree,
             SyntaxNode member,
@@ -176,6 +210,12 @@ namespace CSharpDocs2Markdown
             sink.Add(new Issue(tree.FilePath, line, memberKind, memberName, missingParams, missingReturns, returnType));
         }
 
+        /// <summary>
+        /// Determines whether a documentation comment contains a given XML element.
+        /// </summary>
+        /// <param name="trivia">The documentation trivia to inspect.</param>
+        /// <param name="localName">The local XML element name to look for.</param>
+        /// <returns><see langword="true"/> when the element exists; otherwise <see langword="false"/>.</returns>
         private static bool HasElement(DocumentationCommentTriviaSyntax trivia, string localName)
         {
             foreach (XmlElementSyntax element in trivia.Content.OfType<XmlElementSyntax>())
@@ -195,11 +235,22 @@ namespace CSharpDocs2Markdown
             return false;
         }
 
+        /// <summary>
+        /// Determines whether a type syntax represents <see langword="void"/>.
+        /// </summary>
+        /// <param name="type">The type syntax to inspect.</param>
+        /// <returns><see langword="true"/> when the type is <see langword="void"/>; otherwise <see langword="false"/>.</returns>
         private static bool IsVoidLike(TypeSyntax type)
         {
             return type is PredefinedTypeSyntax predefined && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword);
         }
 
+        /// <summary>
+        /// Converts an absolute path to a project-relative path when possible.
+        /// </summary>
+        /// <param name="root">The root directory used for relativity.</param>
+        /// <param name="path">The path to rewrite.</param>
+        /// <returns>A relative path when the file lives under the root; otherwise the original path.</returns>
         private static string MakeRelative(string root, string path)
         {
             if (string.IsNullOrEmpty(root))
@@ -211,6 +262,12 @@ namespace CSharpDocs2Markdown
             return rel.StartsWith("..", StringComparison.Ordinal) ? path : rel;
         }
 
+        /// <summary>
+        /// Formats an issue as a single-line console diagnostic.
+        /// </summary>
+        /// <param name="relativePath">The display path for the file.</param>
+        /// <param name="issue">The issue to format.</param>
+        /// <returns>The formatted diagnostic line.</returns>
         private static string FormatIssue(string relativePath, Issue issue)
         {
             List<string> bits = new(2);
