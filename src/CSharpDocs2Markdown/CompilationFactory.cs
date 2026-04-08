@@ -17,7 +17,7 @@ namespace CSharpDocs2Markdown
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 string sourceText = await File.ReadAllTextAsync(compileFile, cancellationToken).ConfigureAwait(false);
-                syntaxTrees.Add(CSharpSyntaxTree.ParseText(sourceText, parseOptions, compileFile));
+                syntaxTrees.Add(CSharpSyntaxTree.ParseText(sourceText, parseOptions, compileFile, cancellationToken: cancellationToken));
             }
 
             PortableExecutableReference[] metadataReferences = [.. inspection.ReferencePaths

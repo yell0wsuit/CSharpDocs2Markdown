@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 
 namespace CSharpDocs2Markdown
 {
-    internal static class MarkdownEmitter
+    internal static partial class MarkdownEmitter
     {
         private static readonly SymbolDisplayFormat TypeNameFormat = new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -925,8 +925,11 @@ namespace CSharpDocs2Markdown
                 .Replace(">", "&gt;", StringComparison.Ordinal);
         }
 
-        private static readonly Regex CrefPlaceholderRegex = new(@"\[\[cref:(?<id>[^\]|]+)\|(?<label>[^\]]+)\]\]", RegexOptions.Compiled);
+        private static readonly Regex CrefPlaceholderRegex = MyRegex();
 
         private sealed record LinkTarget(string PagePath, string? Anchor);
+
+        [GeneratedRegex(@"\[\[cref:(?<id>[^\]|]+)\|(?<label>[^\]]+)\]\]", RegexOptions.Compiled)]
+        private static partial Regex MyRegex();
     }
 }
