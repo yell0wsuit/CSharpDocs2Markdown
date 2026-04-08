@@ -7,12 +7,19 @@
     <RootNamespace>CSharpDocs2Markdown</RootNamespace>
     <AssemblyName>csdoc2md</AssemblyName>
     <PackageId>CSharpDocs2Markdown</PackageId>
+    <Version>1.0.0</Version>
     <Description>Roslyn-based CLI to generate Markdown API docs for Docusaurus.</Description>
     <Authors>yell0wsuit</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>csdoc2md</ToolCommandName>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisModeStyle>All</AnalysisModeStyle>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
