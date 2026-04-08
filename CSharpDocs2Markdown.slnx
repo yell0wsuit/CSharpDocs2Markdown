@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CSharpDocs2Markdown/CSharpDocs2Markdown.csproj" />
+  </Folder>
+</Solution>
