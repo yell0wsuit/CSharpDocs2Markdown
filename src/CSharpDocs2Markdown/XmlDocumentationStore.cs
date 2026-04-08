@@ -217,7 +217,7 @@ namespace CSharpDocs2Markdown
             return DocumentationEntry.Empty;
         }
 
-        private static IEnumerable<string> GetReferenceDocumentationPaths(IReadOnlyList<string>? referencePaths)
+        private static List<string> GetReferenceDocumentationPaths(IReadOnlyList<string>? referencePaths)
         {
             if (referencePaths is null || referencePaths.Count == 0)
             {
