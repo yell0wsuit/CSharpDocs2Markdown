@@ -81,41 +81,83 @@ namespace CSharpDocs2Markdown
                 switch (node)
                 {
                     case MethodDeclarationSyntax method:
-                        Inspect(tree, method, method.Identifier.Text, "method",
+                        Inspect(
+                            tree,
+                            method,
+                            method.Identifier.Text,
+                            "method",
                             method.ParameterList.Parameters,
-                            IsVoidLike(method.ReturnType), method.ReturnType.ToString(), sink);
+                            IsVoidLike(method.ReturnType),
+                            method.ReturnType.ToString(),
+                            sink);
                         break;
                     case ConstructorDeclarationSyntax ctor:
-                        Inspect(tree, ctor, ctor.Identifier.Text, "constructor",
+                        Inspect(
+                            tree,
+                            ctor,
+                            ctor.Identifier.Text,
+                            "constructor",
                             ctor.ParameterList.Parameters,
-                            isVoid: true, "void", sink);
+                            isVoid: true,
+                            "void",
+                            sink);
                         break;
                     case DelegateDeclarationSyntax del:
-                        Inspect(tree, del, del.Identifier.Text, "delegate",
+                        Inspect(
+                            tree,
+                            del,
+                            del.Identifier.Text,
+                            "delegate",
                             del.ParameterList.Parameters,
-                            IsVoidLike(del.ReturnType), del.ReturnType.ToString(), sink);
+                            IsVoidLike(del.ReturnType),
+                            del.ReturnType.ToString(),
+                            sink);
                         break;
                     case IndexerDeclarationSyntax idx:
-                        Inspect(tree, idx, "this[]", "indexer",
+                        Inspect(
+                            tree,
+                            idx,
+                            "this[]",
+                            "indexer",
                             idx.ParameterList.Parameters,
-                            IsVoidLike(idx.Type), idx.Type.ToString(), sink);
+                            IsVoidLike(idx.Type),
+                            idx.Type.ToString(),
+                            sink);
                         break;
                     case OperatorDeclarationSyntax op:
-                        Inspect(tree, op, op.OperatorToken.Text, "operator",
+                        Inspect(
+                            tree,
+                            op,
+                            op.OperatorToken.Text,
+                            "operator",
                             op.ParameterList.Parameters,
-                            IsVoidLike(op.ReturnType), op.ReturnType.ToString(), sink);
+                            IsVoidLike(op.ReturnType),
+                            op.ReturnType.ToString(),
+                            sink);
                         break;
                     case ConversionOperatorDeclarationSyntax conv:
                         // Conversion operators conventionally don't need <returns>; only check params.
-                        Inspect(tree, conv, conv.Type.ToString(), "conversion",
+                        Inspect(
+                            tree,
+                            conv,
+                            conv.Type.ToString(),
+                            "conversion",
                             conv.ParameterList.Parameters,
-                            isVoid: true, conv.Type.ToString(), sink);
+                            isVoid: true,
+                            conv.Type.ToString(),
+                            sink);
                         break;
                     case RecordDeclarationSyntax record when record.ParameterList is { } pl:
                         // Primary constructor on a record: params should be documented via <param>.
-                        Inspect(tree, record, record.Identifier.Text, "record",
+                        Inspect(
+                            tree,
+                            record,
+                            record.Identifier.Text,
+                            "record",
                             pl.Parameters,
-                            isVoid: true, "void", sink);
+                            isVoid: true,
+                            "void",
+                            sink);
                         break;
                     default:
                         break;
