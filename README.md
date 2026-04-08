@@ -10,12 +10,12 @@ dotnet build
 
 ## Usage
 
-You can use `csdoc2md` in three ways:
+You can use the CLI in three ways:
 
 1. As a local project during development:
 
 ```sh
-dotnet run --project src/CSharpDocs2Markdown -- <command> [arguments]
+dotnet run --project src/CSharpDocs2Markdown -- --help
 ```
 
 2. As a packaged .NET tool:
@@ -33,12 +33,6 @@ dotnet build src/CSharpDocs2Markdown
 ./src/CSharpDocs2Markdown/bin/Debug/net10.0/csdoc2md --help
 ```
 
-### Development usage
-
-```sh
-dotnet run --project src/CSharpDocs2Markdown -- <command> [arguments]
-```
-
 ### Commands
 
 | Command                                      | Description                                         |
@@ -48,12 +42,6 @@ dotnet run --project src/CSharpDocs2Markdown -- <command> [arguments]
 | `check-xml-docs <project-path>`              | Report members missing `<param>` / `<returns>` tags |
 
 ### Example
-
-```sh
-dotnet run --project src/CSharpDocs2Markdown -- generate ../MyApp/MyApp.csproj ./docs/api
-```
-
-### Tool example
 
 ```sh
 csdoc2md generate ../MyApp/MyApp.csproj ./docs/api
