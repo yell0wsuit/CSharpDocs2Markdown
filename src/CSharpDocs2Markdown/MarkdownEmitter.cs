@@ -881,7 +881,7 @@ namespace CSharpDocs2Markdown
                 RefKind.Ref => "ref",
                 RefKind.Out => "out",
                 RefKind.In => "in",
-                RefKind.None => throw new NotImplementedException(),
+                RefKind.None => string.Empty,
                 RefKind.RefReadOnlyParameter => throw new NotImplementedException(),
                 _ => string.Empty,
             });
