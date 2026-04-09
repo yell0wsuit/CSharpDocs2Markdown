@@ -1010,6 +1010,12 @@ namespace CSharpDocs2Markdown
                 return $"[{typeSymbol.Name}]({GetRelativeLink(currentPagePath, targetPath)})";
             }
 
+            string? externalHref = TryBuildExternalHref(typeSymbol.GetDocumentationCommentId());
+            if (!string.IsNullOrWhiteSpace(externalHref))
+            {
+                return $"[{FormatTypeName(typeSymbol)}]({externalHref})";
+            }
+
             return $"`{FormatTypeName(typeSymbol)}`";
         }
 
@@ -1151,6 +1157,12 @@ namespace CSharpDocs2Markdown
 
                     if (!linkTargets.TryGetValue(documentationId, out LinkTarget? target))
                     {
+                        string? externalHref = TryBuildExternalHref(documentationId);
+                        if (!string.IsNullOrWhiteSpace(externalHref))
+                        {
+                            return $"[{label}]({externalHref})";
+                        }
+
                         return $"`{label}`";
                     }
 
@@ -1173,6 +1185,141 @@ namespace CSharpDocs2Markdown
                 : string.Equals(Path.GetFullPath(currentPagePath), Path.GetFullPath(target.PagePath), StringComparison.Ordinal)
                 ? $"#{target.Anchor}"
                 : $"{relativePage}#{target.Anchor}";
+        }
+
+        /// <summary>
+        /// Tries to build an external documentation URL for a non-local symbol.
+        /// </summary>
+        /// <param name="documentationId">The Roslyn documentation identifier.</param>
+        /// <returns>The external documentation URL, or <see langword="null"/> when no mapping exists.</returns>
+        private static string? TryBuildExternalHref(string? documentationId)
+        {
+            if (!TryParseDocumentationId(documentationId, out char kind, out string qualifiedName))
+            {
+                return null;
+            }
+
+            if (qualifiedName.StartsWith("System.", StringComparison.Ordinal) || string.Equals(qualifiedName, "System", StringComparison.Ordinal))
+            {
+                string learnTarget = kind is 'T' or 'N'
+                    ? qualifiedName
+                    : GetContainingTypeOrMemberTarget(qualifiedName, preferContainingTypeOnly: false);
+
+                return $"https://learn.microsoft.com/en-us/dotnet/api/{learnTarget.ToLowerInvariant()}?view=net-10.0";
+            }
+
+            if (qualifiedName.StartsWith("Microsoft.Xna.", StringComparison.Ordinal))
+            {
+                string monoGameTarget = kind is 'T' or 'N'
+                    ? qualifiedName
+                    : GetContainingTypeOrMemberTarget(qualifiedName, preferContainingTypeOnly: true);
+
+                return $"https://docs.monogame.net/api/{monoGameTarget}.html";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Parses a documentation identifier into its kind prefix and normalized qualified name.
+        /// </summary>
+        /// <param name="documentationId">The documentation identifier to parse.</param>
+        /// <param name="kind">The identifier kind prefix such as <c>T</c> or <c>M</c>.</param>
+        /// <param name="qualifiedName">The normalized fully qualified name.</param>
+        /// <returns><see langword="true"/> when parsing succeeded.</returns>
+        private static bool TryParseDocumentationId(string? documentationId, out char kind, [NotNullWhen(true)] out string? qualifiedName)
+        {
+            kind = default;
+            qualifiedName = null;
+
+            if (string.IsNullOrWhiteSpace(documentationId) || documentationId.Length < 3 || documentationId[1] != ':')
+            {
+                return false;
+            }
+
+            kind = documentationId[0];
+            string value = documentationId[2..];
+            int parameterIndex = value.IndexOf('(', StringComparison.Ordinal);
+            if (parameterIndex >= 0)
+            {
+                value = value[..parameterIndex];
+            }
+
+            value = NormalizeGenericTypeNotation(value);
+            value = value
+                .Replace("``", "-", StringComparison.Ordinal)
+                .Replace("`", "-", StringComparison.Ordinal)
+                .Replace('#', '.');
+
+            qualifiedName = value;
+            return !string.IsNullOrWhiteSpace(qualifiedName);
+        }
+
+        /// <summary>
+        /// Rewrites constructed generic type notation to API-doc arity markers.
+        /// </summary>
+        /// <param name="value">The qualified documentation name to normalize.</param>
+        /// <returns>The normalized name with constructed generic arguments collapsed to arity markers.</returns>
+        private static string NormalizeGenericTypeNotation(string value)
+        {
+            StringBuilder builder = new(value.Length);
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i] != '{')
+                {
+                    _ = builder.Append(value[i]);
+                    continue;
+                }
+
+                int depth = 1;
+                int argumentCount = 1;
+                int j = i + 1;
+                for (; j < value.Length && depth > 0; j++)
+                {
+                    if (value[j] == '{')
+                    {
+                        depth++;
+                    }
+                    else if (value[j] == '}')
+                    {
+                        depth--;
+                    }
+                    else if (value[j] == ',' && depth == 1)
+                    {
+                        argumentCount++;
+                    }
+                }
+
+                _ = builder.Append('-');
+                _ = builder.Append(argumentCount);
+                i = j - 1;
+            }
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Gets the URL path token for a member or containing type.
+        /// </summary>
+        /// <param name="qualifiedName">The normalized qualified name.</param>
+        /// <param name="preferContainingTypeOnly">A value indicating whether member links should collapse to the containing type page.</param>
+        /// <returns>The path token used by the external documentation provider.</returns>
+        private static string GetContainingTypeOrMemberTarget(string qualifiedName, bool preferContainingTypeOnly)
+        {
+            int lastDotIndex = qualifiedName.LastIndexOf('.');
+            if (lastDotIndex < 0)
+            {
+                return qualifiedName;
+            }
+
+            string memberName = qualifiedName[(lastDotIndex + 1)..];
+            if (preferContainingTypeOnly || string.Equals(memberName, "ctor", StringComparison.Ordinal) || string.Equals(memberName, ".ctor", StringComparison.Ordinal))
+            {
+                return qualifiedName[..lastDotIndex];
+            }
+
+            return qualifiedName;
         }
 
         /// <summary>
