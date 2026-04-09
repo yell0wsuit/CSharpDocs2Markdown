@@ -349,6 +349,7 @@ namespace CSharpDocs2Markdown
         {
             return element.Name.LocalName switch
             {
+                "see" or "seealso" when element.Attribute("langword") is not null => RenderLangwordElement(element),
                 "see" or "seealso" => RenderCrefElement(element),
                 "paramref" or "typeparamref" => RenderNameElement(element),
                 "langword" => RenderLangwordElement(element),
@@ -402,7 +403,7 @@ namespace CSharpDocs2Markdown
         /// <returns>The rendered inline code text.</returns>
         private static string RenderLangwordElement(XElement element)
         {
-            string? word = element.Attribute("word")?.Value;
+            string? word = element.Attribute("word")?.Value ?? element.Attribute("langword")?.Value;
             return string.IsNullOrWhiteSpace(word) ? string.Empty : $"`{word}`";
         }
 
